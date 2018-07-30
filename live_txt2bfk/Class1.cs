@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 
 
@@ -12,8 +10,8 @@ namespace live_txt2bfk
     {
 
         Queue<int> input = new Queue<int>();
-        Queue<int> used = new Queue<int>();
         List<int> sorted = new List<int>();
+        List<int> spread = new List<int>();
 
         int cellcount = -1;
         List<Queue<int>> cells = new List<Queue<int>>();
@@ -24,15 +22,16 @@ namespace live_txt2bfk
         
         public DoCompute()
         {
+            Console.Title = "";
             cells.Add(item);
-
-            while (true)
+            ConsoleKeyInfo input_key = new ConsoleKeyInfo();
+            while (input_key.Key != ConsoleKey.Enter)
             {
-                int adjust = 0;
 
                 //Create an expanding distance list the transcoder can reference with each letter.
 
-                ConsoleKeyInfo input_key = Console.ReadKey(true);
+                input_key = Console.ReadKey(true);
+                //Console.Title = Console.Title + input_key.KeyChar;
                 if (input_key.Key == ConsoleKey.Enter)
                 {
                     break;
@@ -57,22 +56,35 @@ namespace live_txt2bfk
 
 
                 bool found = false;
+                int current_low = 5;
+                int index = new int();
                 for (int i = input.Count - 2; i >= 0; i--)
                 {
-                    if (dists[i] <= 8 && found == false)
+                    if (dists[i] <= current_low)
                     {
-                        sorted.Add(sorted[i]);
-                        cells[sorted[i]].Enqueue(input_as_array[input_as_array.Length - 1]);
+                        current_low = dists[i];
+
+                        index = i;
                         found = true;
                     }
                 }
-                if (found == false)
+                if(found == true)
+                {
+                    sorted.Add(sorted[index]);
+                    cells[sorted[index]].Enqueue(input_as_array[input_as_array.Length - 1]);
+                    //Console.Write(sorted[index] + ": " + input_key.KeyChar + ": ");
+                }
+                else
                 {
                     cellcount++;
+                    output.Add(0);
                     sorted.Add(cellcount);
                     cells.Add(item);
                     cells[cellcount].Enqueue(input_as_array[input_as_array.Length - 1]);
+                    //Console.Write(cellcount + ": " + input_key.KeyChar + ": ");
+
                 }
+
 
 
 
@@ -88,10 +100,8 @@ namespace live_txt2bfk
                 //Console.WriteLine();
 
                 //Begin Transcoding//
-                if (output.Count < input.Count)
-                {
-                    output.Add(0);
-                }
+                int adjust = 0;
+                bool nonl = false;
                 while (x != sorted.Last())
                 {
                     if (x > sorted.Last())
@@ -111,30 +121,23 @@ namespace live_txt2bfk
                 //Optimize a cell on its first call, kinda
                 if (output[x] == 0)
                 {
-
+                    //Console.Write("!");
                     int div = 1;
 
                     int count = 0;
 
 
-                    for (int j = x; j < output.Count; j++)
-                    {
-                        if (output[j] != 0)
-                        {
-                            count++;
-                        }
 
-                    }
-                    //Console.Write("count = {0}", count);
                     Console.Write(">"); //shift bf to next pointer to begin a counter.
 
-                    for (int j = 0; j < count; j++)
+                    for (int j = x; output[j]!=0; j++)
                     {
                         Console.Write(">"); //adjust for when we have to put the counter in a weird place. j is for adjust.
+                        count++;
                     }
 
 
-                    while (div == 1)
+                    while (div == 1) //Find a divisor. numerator won't be negative because starting at 0.
                     {
                         for (int j = 1; j < tmp / 2; j++)
                         {
@@ -181,8 +184,82 @@ namespace live_txt2bfk
                     output[x] = tmp;
 
                 }
+                else if (Math.Abs(tmp - output[x]) > 9)
+                {
+                    tmp = tmp - output[x];
+                    adjust = 0;
+                    int div = 1;
+                    int count = 0;
+
+
+
+                    Console.Write(">"); //shift bf to next pointer to begin a counter.
+
+
+                    output.Add(0);
+                    for (int j = x; output[j]!=0; j++)
+                    {
+                        Console.Write(">"); //adjust for when we have to put the counter in a weird place. j is for adjust.
+                        count++;
+                    }
+
+
+                    while (div == 1) //find a divisor. numerator may be negative because we're simplifying the difference between intended output and current cell fill.
+                    {
+                        for (int j = 1; j < Math.Abs(tmp) / 2; j++)
+                        {
+                            if ((Math.Abs(tmp) / j) < (Math.Abs(tmp) / div) && Math.Abs(tmp) % j == 0)
+                            {
+                                div = j;
+                                tmp = tmp / div;
+                            }
+                        }
+                        if (div == 1)
+                        {
+                            adjust++;
+                            tmp--;
+                        }
+                    }
+                    for (int j = 0; j < div; j++)
+                    {
+                        Console.Write("+"); //do the loop this many times
+
+                    }
+                    Console.Write("["); //begin loop
+                    Console.Write("<"); //go back to letter
+                    for (int j = 0; j < count; j++)
+                    {
+                        Console.Write("<"); //adjust for when we have to put the counter in a weird place. j is for adjust.
+                    }
+
+                    for (int i = 0; i < Math.Abs(tmp); i++)
+                    {
+                        if (tmp > 0)
+                        {
+                            Console.Write("+"); //increment letter
+                        }
+                        else
+                        {
+                            Console.Write("-");
+                        }
+                    }
+                    output[x] += (tmp * div);
+
+                    Console.Write(">");//go back to the counter
+                    for (int j = 0; j < count; j++)
+                    {
+                        Console.Write(">"); //adjust for when we have to put the counter in a weird place. j is for adjust.
+                    }
+                    Console.Write("-]"); //decrement counter
+                    Console.Write("<"); //go back to letter
+                    for (int j = 0; j < count; j++)
+                    {
+                        Console.Write("<"); //adjust for when we have to put the counter in a weird place. j is for adjust.
+                    }
+                }
                 else
                 {
+                    nonl = true;
                     while (output[x] != tmp)
                     {
                         if (output[x] > tmp)
@@ -206,16 +283,11 @@ namespace live_txt2bfk
 
                 }
                 Console.Write(".");
-
-
+                if (!nonl)
+                {
+                    Console.WriteLine();
+                }
             }
-
-            Console.Write("\nSorted[] = ");
-            for (int i = 0; i < sorted.Count; i++)
-            {
-                Console.Write(sorted[i] + ", ");
-            }
-
             Console.WriteLine();
             Console.ReadKey();
         }
