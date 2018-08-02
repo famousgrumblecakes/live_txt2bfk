@@ -19,10 +19,11 @@ namespace live_txt2bfk
 
         int x = 0; //cursor
         List<int> output = new List<int>();
-        
+
+        string currentinput;
+
         public DoCompute()
         {
-            Console.Title = "";
             cells.Add(item);
             ConsoleKeyInfo input_key = new ConsoleKeyInfo();
             while (input_key.Key != ConsoleKey.Enter)
@@ -31,21 +32,16 @@ namespace live_txt2bfk
                 //Create an expanding distance list the transcoder can reference with each letter.
 
                 input_key = Console.ReadKey(true);
-                //Console.Title = Console.Title + input_key.KeyChar;
                 if (input_key.Key == ConsoleKey.Enter)
                 {
                     break;
                 }
                 if (input_key.Key == ConsoleKey.NumPad0)
                 {
-                    Console.Write("Sorted[] = ");
-                    for (int i = 0; i < sorted.Count; i++)
-                    {
-                        Console.Write(sorted[i] + ", ");
-                    }
-                    Console.WriteLine();
+                    Console.WriteLine("\n"+currentinput);
                     input_key = Console.ReadKey(true);
                 }
+                currentinput = currentinput + input_key.KeyChar;
                 input.Enqueue(input_key.KeyChar);
                 int[] input_as_array = input.ToArray();
                 int[] dists = new int[input.Count];
@@ -85,19 +81,6 @@ namespace live_txt2bfk
 
                 }
 
-
-
-
-
-                /*
-                Console.Write((char)input_as_array[input.Count-1] + ": ");
-                for (int i = 0; i < input.Count; i++)
-                {
-                    Console.Write(dists[i] + ", ");
-            
-                }
-                */
-                //Console.WriteLine();
 
                 //Begin Transcoding//
                 int adjust = 0;
@@ -191,10 +174,7 @@ namespace live_txt2bfk
                     int div = 1;
                     int count = 0;
 
-
-
                     Console.Write(">"); //shift bf to next pointer to begin a counter.
-
 
                     output.Add(0);
                     for (int j = x; output[j]!=0; j++)
